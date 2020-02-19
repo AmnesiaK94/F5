@@ -16,7 +16,6 @@
       validate_certs: no
 
 
-
 #Global VAR Should Come From INPUT.json
     env: rec
     app: toto
