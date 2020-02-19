@@ -1,0 +1,80 @@
+---
+
+- name: "Yaml VIP file transfert.rec.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_REC_STANDARD"
+  hosts: F5
+  connection: local
+#####################
+#       VARS        #
+#####################
+  vars:
+#Connexion Vars
+    provider:
+      server: 192.168.0.250
+      user: admin
+      password: admin
+      validate_certs: no
+#Virtual Vars
+    vsname: "vs_transfert.rec.galec.fr"
+    vsip: "192.168.156.15"
+    vsport: "443"
+#Pool Vars
+    plname: "p_transfert.rec.galec.fr"
+    pmport: "80"
+#Pool Members Vars
+    pmhost: 
+     - 172.30.15.1
+     - 172.30.15.2
+     - 172.30.15.3
+     - 172.30.15.4
+#Delete or Create/Modify    
+    state: "present"
+
+  tasks:
+    - name: Adjust virtual server
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        destination: "{{ vsip }}"
+        port: "{{ vsport }}"
+        description: "Web App"
+        snat: "Automap"
+        all_profiles:
+          - "clientssl"
+          - "http"
+        state: "{{ state }}"
+
+    - name: Create web servers pool
+      bigip_pool:
+        state: "{{ state }}"
+        partition: Common
+        name: "{{ plname }}"
+        lb_method: least-connections-member
+        provider: "{{ provider }}"
+
+    - name: Create nodes
+      bigip_node:
+        provider: "{{ provider }}"
+        name: "{{ item }}"
+        host: "{{ item }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+
+
+    - name: Add nodes to pool
+      bigip_pool_member:
+        provider: "{{ provider }}"
+        host: "{{ item }}"
+        port: "{{ pmport }}"
+        pool: "{{ plname }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+      when: state == "present"
+
+
+    - name: Update a VS
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        pool: "{{ plname }}"
+        state: "{{ state }}"
+      when: state == "present"

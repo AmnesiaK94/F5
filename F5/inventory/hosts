@@ -1,0 +1,2 @@
+[bigips]
+F5 ansible_host=192.168.0.250

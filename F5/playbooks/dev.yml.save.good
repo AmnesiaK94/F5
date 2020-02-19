@@ -1,0 +1,98 @@
+---
+
+- name: "Yaml VIP file transfert.rec.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_REC_STANDARD"
+  hosts: F5
+  connection: local
+#####################
+#       VARS        #
+#####################
+  vars:
+
+
+    sudoGroup: "{{ 'sudo' if ansible_distribution == 'Ubuntu' else 'wheel' }}"
+
+#Global VAR Should Come From INPUT.json
+    env: frm
+    app: toto
+    profile: vip_profile_ssloffload_rect_standard
+    fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
+
+#Connexion Vars
+    provider:
+      server: 192.168.0.250
+      user: admin
+      password: admin
+      validate_certs: no
+#Virtual Vars
+    vsname: "vs_{{fqdn}}"
+    vsip: "192.168.156.16"
+    vsport: "443"
+#Pool Vars
+    plname: "p_{{fqdn}}"
+    pmport: "80"
+#Pool Members Vars
+    pmhost: 
+     - 172.30.15.1
+     - 172.30.15.2
+     - 172.30.15.3
+     - 172.30.15.4
+#Delete or Create/Modify    
+    state: "present"
+
+
+
+
+  tasks:
+    - name: Adjust virtual server
+      debug:
+        msg: "Creation VIP: '{{ fqdn }}'"
+
+
+    - name: Adjust virtual server
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        destination: "{{ vsip }}"
+        port: "{{ vsport }}"
+        description: "Web App"
+        snat: "Automap"
+        all_profiles:
+          - "clientssl"
+          - "http"
+        state: "{{ state }}"
+
+    - name: Create web servers pool
+      bigip_pool:
+        state: "{{ state }}"
+        partition: Common
+        name: "{{ plname }}"
+        lb_method: least-connections-member
+        provider: "{{ provider }}"
+
+    - name: Create nodes
+      bigip_node:
+        provider: "{{ provider }}"
+        name: "{{ item }}"
+        host: "{{ item }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+
+
+    - name: Add nodes to pool
+      bigip_pool_member:
+        provider: "{{ provider }}"
+        host: "{{ item }}"
+        port: "{{ pmport }}"
+        pool: "{{ plname }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+      when: state == "present"
+
+
+    - name: Update a VS
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        pool: "{{ plname }}"
+        state: "{{ state }}"
+      when: state == "present"

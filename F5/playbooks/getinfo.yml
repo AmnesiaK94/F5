@@ -1,0 +1,25 @@
+---
+
+- name: "Imperative: Run a tmsh command"
+  hosts: bigips
+  gather_facts: false
+  connection: local
+
+
+  tasks:
+    - name: View system version and LTM configuration
+      bigip_command:
+        commands:
+          - show /sys version detail
+          - list /ltm virtual all
+          - list /ltm pool all
+          - list /ltm node all
+        provider:
+          server:192.168.0.250 
+          password:admin
+          user:admin
+      register: result
+
+    - debug: msg="{{ result.stdout_lines }}"
+
+...
