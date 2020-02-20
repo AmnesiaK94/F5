@@ -1,6 +1,6 @@
 ---
 
-- name: "Yaml VIP file transfert.rec.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_REC_STANDARD"
+- name: "Yaml VIP file testweb.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_PRD_STANDARD"
   hosts: F5
   connection: local
 #####################
