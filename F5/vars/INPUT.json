@@ -1,0 +1,10 @@
+{
+  "env": "rec",
+  "app": "julien",
+  "virt_profile": "vip_profile_ssloffload_standard",
+  "vsip": "192.168.157.10",
+  "pmhost": [
+    "192.168.24.166",
+    "192.168.24.167"
+  ]
+}

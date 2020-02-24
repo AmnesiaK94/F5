@@ -1,0 +1,31 @@
+---
+###################################################################
+#VS Profile for Standard SSL Offload
+# Port d'écoute: SSL/443
+# Port loadbalancé sur les serveurs : TCP/80
+# Loadbalancing Method : Round-Robin
+# Profile SSL basé sur le template profile SSL du nom de domaine
+# Profile TCP
+# SNAT : AutoMAP
+###################################################################
+
+
+
+
+vsport: "443"
+pmport: "80"
+monitors : "tcp"
+snat : "Automap"
+all_profiles:
+ - '{{client_ssl_profile}}'
+ - tcp
+############################################################
+#Variables calculées à partir du fichier input.json fournis#
+############################################################
+
+fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
+dom:  '{{ vars["env"]+".galec.fr" if env != "prd" else "galec.fr" }}'
+vsname: "vs_{{fqdn}}"
+plname: "p_{{fqdn}}"
+client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
+client_ssl_profile: "clientssl_{{fqdn}}"

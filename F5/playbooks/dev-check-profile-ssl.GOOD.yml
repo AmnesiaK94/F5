@@ -1,0 +1,160 @@
+---
+
+- name: "Yaml VIP file testweb.rec.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_REC_STANDARD"
+  hosts: F5
+  gather_facts: no
+  connection: local
+#####################
+#       VARS        #
+#####################
+
+
+  vars_files:
+    - "../vars/f5_prd_provider_creds.yml"
+
+  vars:
+    continue_var: OUI
+
+#Var calculated from INPUT.json vars
+    fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
+    dom:  '{{ vars["env"]+".galec.fr" if env != "prd" else "galec.fr" }}'
+    vsname: "vs_{{fqdn}}"
+    plname: "p_{{fqdn}}"
+    client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
+    client_ssl_profile: "clientssl_{{fqdn}}"
+
+
+
+#Var calculated frome VIP Profile 
+    vsport: "443"
+    pmport: "80"
+    monitors : "tcp"
+    snat : "Automap"
+    all_profiles:
+     - '{{client_ssl_profile}}'
+     - tcp
+
+#Delete or Create/Modify    
+    state: "present"
+
+
+
+#####################
+#       TASKS       #
+#####################
+
+  tasks:
+
+    - name: Checking Vars
+      debug:
+        msg: 
+          client_ssl_parent_profile: '{{ client_ssl_parent_profile }}'
+          client_ssl_profile: '{{ client_ssl_profile }}'
+          plname: '{{plname}}'
+          vsname: '{{vsname}}'
+          dom: '{{dom}}'
+          fqdn: '{{fqdn}}'
+          vsport: '{{vsport}}'
+          pmport: '{{pmport}}'
+          monitors: '{{monitors}}'
+          snat: '{{snat}}'
+          
+
+
+    - name: Gathering parent ssl profile '{{ client_ssl_parent_profile }}' for '{{ client_ssl_profile }}'
+      bigip_command:
+        commands: list ltm profile client-ssl '{{ client_ssl_parent_profile }}'
+        provider: "{{ provider }}"
+      register: client_ssl_parent_profile_list
+
+#    - name : print out sslprofile list
+#      debug:
+#        msg: "{{client_ssl_parent_profile_list.stdout}}"
+
+    - name : Register Continue Playbook variable
+      when: '"not found" in "{{client_ssl_parent_profile_list.stdout}}"'
+      set_fact:
+        continue_var: 'NON'
+
+
+    - name : Verification de l'existence du profile SSL Parent pour continuer le Playbook.
+      debug:
+        msg: "Impossible de créer '{{ client_ssl_profile }}' si '{{ client_ssl_parent_profile }}' est manquant sur le F5 !"
+      when: '"not found" in "{{client_ssl_parent_profile_list.stdout}}"'
+
+    - name : Continuer le playbook si suppression
+      when: state == "absent"  
+      set_fact:
+        continue_var: 'OUI'
+
+
+    - name: Verification de l'existence du profile SSL Parent pour continuer le Playbook.
+      fail:
+        msg: Une element est manquant sur le F5 pour executer le playbook.
+      when: 
+        - continue_var == "NON"
+        - state == "present"
+
+
+
+    - name: Altering virtual server {{ vsname }} with state {{state}}
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        destination: "{{ vsip }}"
+        port: "{{ vsport }}"
+        description: "Web App"
+        snat: "{{ snat }}"
+        state: "{{ state }}"
+
+    - name: Altering client SSL profile {{ client_ssl_parent_profile }} with state {{state}}
+
+      bigip_profile_client_ssl:
+        provider: "{{ provider }}"
+        state: "{{ state }}"
+        name: "{{ client_ssl_profile }}"
+        parent: "{{ client_ssl_parent_profile }}"
+
+    - name: Altering web servers pool {{ plname }} with state {{state}}
+      bigip_pool:
+        state: "{{ state }}"
+        partition: Common
+        name: "{{ plname }}"
+        lb_method: "round-robin"
+        monitor_type: "and_list"
+        monitors: "{{ monitors }}"
+        provider: "{{ provider }}"
+
+    - name: Altering nodes with state {{state}}
+      bigip_node:
+        provider: "{{ provider }}"
+        name: "{{ item }}"
+        host: "{{ item }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+      when:
+        - state == "present"
+
+
+    - name: Add nodes to pool {{ plname }}
+      bigip_pool_member:
+        provider: "{{ provider }}"
+        host: "{{ item }}"
+        port: "{{ pmport }}"
+        pool: "{{ plname }}"
+        state: "{{ state }}"
+      with_items: "{{ pmhost }}"
+      when: 
+        - state == "present"
+
+
+    - name: Update a VS
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        name: "{{ vsname }}"
+        pool: "{{ plname }}"
+        all_profiles : "{{ all_profiles }}"
+        state: "{{ state }}"
+      when:
+        - state == "present"
+
