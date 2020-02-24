@@ -3,7 +3,7 @@
 - name: "Yaml file to create/Modify or delete VIP/POOL on F5"
   hosts: F5
   gather_facts: no
-  connection: locali
+  connection: local
 
 #################################################################################
 JBO 24/02/2020
