@@ -6,9 +6,9 @@
   connection: local
 
 #################################################################################
-JBO 24/02/2020
-Ce playbook doit-être lancé en spécifiant un fichier input.json qui comprendra les informations nécessaires :
-ansible-playbook playbooks/dev-check-profile-ssl.yml -e "@./vars/INPUT.json
+#JBO 24/02/2020
+#Ce playbook doit-être lancé en spécifiant un fichier input.json qui comprendra les informations nécessaires :
+#ansible-playbook playbooks/dev-check-profile-ssl.yml -e "@./vars/INPUT.json
 ################################################################################
 
 
@@ -28,7 +28,7 @@ ansible-playbook playbooks/dev-check-profile-ssl.yml -e "@./vars/INPUT.json
 
 
 #Delete or Create/Modify    
-    state: "present"
+    state: "absent"
 
 
 #####################
@@ -116,6 +116,8 @@ ansible-playbook playbooks/dev-check-profile-ssl.yml -e "@./vars/INPUT.json
         state: "{{ state }}"
         name: "{{ client_ssl_profile }}"
         parent: "{{ client_ssl_parent_profile }}"
+      when:
+        - client_ssl_profile != "clientssl"
 
     - name: Altering web servers pool {{ plname }} with state {{state}}
       bigip_pool:

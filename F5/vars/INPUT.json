@@ -1,7 +1,23 @@
+
+###################################
+#env : rec/prd/frm/dev/ppd/qua
+#virt_profile: 
+#vip_profile_ssloffload_standard
+#vip_profile_fullssl_standard
+#vip_profile_tcp_80.yml
+#
+#
+#
+#
+#
+##################################
+
+
+
 {
   "env": "rec",
-  "app": "julien",
-  "virt_profile": "vip_profile_ssloffload_standard",
+  "app": "toto",
+  "virt_profile": "vip_profile_fullssl_standard",
   "vsip": "192.168.157.10",
   "pmhost": [
     "192.168.24.166",
