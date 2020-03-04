@@ -1,20 +1,5 @@
-
-###################################
-#env : rec/prd/frm/dev/ppd/qua
-#virt_profile: 
-#vip_profile_ssloffload_standard
-#vip_profile_fullssl_standard
-#vip_profile_tcp_80.yml
-#
-#
-#
-#
-#
-##################################
-
-
-
 {
+
   "env": "rec",
   "app": "toto",
   "virt_profile": "vip_profile_fullssl_standard",
@@ -23,4 +8,5 @@
     "192.168.24.166",
     "192.168.24.167"
   ]
+
 }

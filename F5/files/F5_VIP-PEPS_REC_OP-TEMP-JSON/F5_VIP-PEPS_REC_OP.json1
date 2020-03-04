@@ -1,0 +1,1 @@
+{"name":"vs-peps-front","env":"rec","virt_profile":"vip_profile_ssloffload_standard","vsip":"192.168.156.4","nodes":["192.168.24.166","192.168.24.167"]}

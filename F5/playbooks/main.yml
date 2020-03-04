@@ -8,7 +8,7 @@
 #################################################################################
 #JBO 24/02/2020
 #Ce playbook doit-être lancé en spécifiant un fichier input.json qui comprendra les informations nécessaires :
-#ansible-playbook playbooks/dev-check-profile-ssl.yml -e "@./vars/INPUT.json
+#ansible-playbook playbooks/main.yml -e "@./vars/INPUT.json
 ################################################################################
 
 
