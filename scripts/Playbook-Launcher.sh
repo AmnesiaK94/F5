@@ -9,25 +9,27 @@
 #Executer le playbook ansible-playbook avec le fichier json en entrée avec tous les json dans le dossier.
 #L'execution de chaque playbook stock le fichier json de variable de la VIP dans la BDD si le playbook s'est bien executé.
 #set -x
-JSONREF=F5_PEPS_REC_OP
-JSONPATH=../files/
-JSONFILE=$JSONREF.json
-JSONFP=$JSONPATH$JSONFILE
-JSONTEMPDIR=../files/$JSONREF-TEMP-JSON/
 
-#    .---------- constant part!
-#    vvvv vvvv-- the code from above
 RED='\033[0;31m'
 G='\033[0;32m'
+Y='\033[1;33m'
 NC='\033[0m' # No Color
 
 KO="${RED}[ KO ]${NC}"
 OK="${G}[ OK ]${NC}"
 
 
+JSONREF=F5_PEPS_REC_OP
+JSONPATH=../files/
+JSONFILE=$JSONREF.json
+JSONFP=$JSONPATH$JSONFILE
+JSONTEMPDIR=../files/$JSONREF-TEMP-JSON/
 
 
+
+echo ""
 echo "Positionnement du script Bash dans ./script/"
+echo ""
 
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -36,13 +38,16 @@ cd "$parent_path"
 
 
 if test -f "$JSONFP"; then
+  echo ""
   echo "Le fichier '$JSONFILE' existe"
+  echo ""
   cat $JSONFP | jq '.'> /dev/null
   if [ $? -ne 0 ]; then
     echo -e "$KO Erreur de syntaxe dans le fichier json"
   else
     echo -e "$OK La syntaxe du fichier Json est correct"
   fi
+  echo ""
   echo -e "Creation du repertoire $JSONTEMPDIR"
   mkdir -p $JSONTEMPDIR
   echo -e "Decoupage du fichier Json"
@@ -50,14 +55,18 @@ if test -f "$JSONFP"; then
   awk '{print > ( FILENAME"."NR ) }'  $JSONTEMPDIR$JSONFILE
   rm -rf $JSONTEMPDIR$JSONFILE
   echo -e "Liste des fichiers Json générés dans "$JSONTEMPDIR" :"
+  echo ""
   ls  $JSONTEMPDIR | grep json
+  echo ""
   echo -e "Liste des Noms technique de VIP qui vont être créees:"
+  echo ""
   cat $JSONFP | jq -r '.[] | .[].ID '
+  echo ""
   
   TMPJSONVIP=$JSONTEMPDIR*
   for j in $TMPJSONVIP
   do
-  echo "Processing $j file with ansible-playbook."
+  echo -e "Launching: ${Y}[ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts${NC}]"
   ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts
     if [ $? -ne 0 ]; then
       echo -e "$KO Le playbook s'est mal terminé pour le fichier Json : $j"
