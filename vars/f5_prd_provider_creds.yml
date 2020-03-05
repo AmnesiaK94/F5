@@ -2,7 +2,7 @@
 # ./vars/f5_prod_provider_creds.yml
 
 provider:
-  server: 192.168.0.250
+  server: 192.168.110.235
   user: admin
   password: admin
   validate_certs: no
