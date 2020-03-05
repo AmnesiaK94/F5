@@ -8,7 +8,7 @@
 #Compter le nombre de fichier json à traiter et stocket ce nombre dans une variable vip_number
 #Executer le playbook ansible-playbook avec le fichier json en entrée avec tous les json dans le dossier.
 #L'execution de chaque playbook stock le fichier json de variable de la VIP dans la BDD si le playbook s'est bien executé.
-
+#set -x
 JSONREF=F5_PEPS_REC_OP
 JSONPATH=../files/
 JSONFILE=$JSONREF.json
@@ -33,15 +33,20 @@ if test -f "$JSONFP"; then
   echo "Creation du repertoire $JSONTEMPDIR"
   mkdir -p $JSONTEMPDIR
   echo "Decoupage du fichier Json"
-  cat $JSONFP | jq  '.[] | .[] | .[]  ' -c > $JSONTEMPDIR$JSONFILE
+  cat $JSONFP  | jq -c '.[] | .[]' > $JSONTEMPDIR$JSONFILE
   awk '{print > ( FILENAME"."NR ) }'  $JSONTEMPDIR$JSONFILE
   rm -rf $JSONTEMPDIR$JSONFILE
   echo "Liste des fichiers Json générés dans "$JSONTEMPDIR" :"
   ls  $JSONTEMPDIR | grep json
   echo "Liste des Noms technique de VIP qui vont être créees:"
-  cat $JSONTEMPDIR* | jq '.name' -r
-
-
+  cat $JSONFP | jq -r '.[] | .[].name '
+  
+  TMPJSONVIP=$JSONTEMPDIR*
+  for j in $TMPJSONVIP
+  do
+  echo "Processing $j file..."
+  ls $j
+  done
 
  
 else
