@@ -15,42 +15,62 @@ JSONFILE=$JSONREF.json
 JSONFP=$JSONPATH$JSONFILE
 JSONTEMPDIR=../files/$JSONREF-TEMP-JSON/
 
+#    .---------- constant part!
+#    vvvv vvvv-- the code from above
+RED='\033[0;31m'
+G='\033[0;32m'
+NC='\033[0m' # No Color
 
-echo $JSONPATH
-echo $JSONFILE
-echo $JSONFP
-echo $JSONTEMPDIR
-echo $JSONTEMPDIR$JSONFILE
+KO="${RED}[ KO ]${NC}"
+OK="${G}[ OK ]${NC}"
+
+
+
+
+echo "Positionnement du script Bash dans ./script/"
+
+
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+cd "$parent_path"
+
 
 if test -f "$JSONFP"; then
   echo "Le fichier '$JSONFILE' existe"
   cat $JSONFP | jq '.'> /dev/null
   if [ $? -ne 0 ]; then
-    echo "erreur de syntaxe dans le fichier json"
+    echo -e "$KO Erreur de syntaxe dans le fichier json"
   else
-    echo "La syntaxe du fichier Json est correct"
+    echo -e "$OK La syntaxe du fichier Json est correct"
   fi
-  echo "Creation du repertoire $JSONTEMPDIR"
+  echo -e "Creation du repertoire $JSONTEMPDIR"
   mkdir -p $JSONTEMPDIR
-  echo "Decoupage du fichier Json"
+  echo -e "Decoupage du fichier Json"
   cat $JSONFP  | jq -c '.[] | .[]' > $JSONTEMPDIR$JSONFILE
   awk '{print > ( FILENAME"."NR ) }'  $JSONTEMPDIR$JSONFILE
   rm -rf $JSONTEMPDIR$JSONFILE
-  echo "Liste des fichiers Json générés dans "$JSONTEMPDIR" :"
+  echo -e "Liste des fichiers Json générés dans "$JSONTEMPDIR" :"
   ls  $JSONTEMPDIR | grep json
-  echo "Liste des Noms technique de VIP qui vont être créees:"
-  cat $JSONFP | jq -r '.[] | .[].name '
+  echo -e "Liste des Noms technique de VIP qui vont être créees:"
+  cat $JSONFP | jq -r '.[] | .[].ID '
   
   TMPJSONVIP=$JSONTEMPDIR*
   for j in $TMPJSONVIP
   do
-  echo "Processing $j file..."
-  ls $j
+  echo "Processing $j file with ansible-playbook."
+  ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts
+    if [ $? -ne 0 ]; then
+      echo -e "$KO Le playbook s'est mal terminé pour le fichier Json : $j"
+      echo -e "$KO Sortie du script"
+      exit 1
+    else
+      echo -e "$OK La playbook s'est terminé pour le fichier Json : $j"
+    fi
   done
 
  
 else
-  echo "Le fichier '$JSONFILE' n'existe pas"
+  echo -e "$KO Le fichier '$JSONFILE' n'existe pas"
 fi
 
 
