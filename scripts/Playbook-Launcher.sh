@@ -5,7 +5,6 @@
 #Si le nom existe déja ne rien faire
 #Si le nom d'existe pas ne rien faire 
 #Si le nom existe mais que la clé n'est pas existance dans la demande, copier le fichier json manquant et insérer le state absent.
-#Compter le nombre de fichier json à traiter et stocket ce nombre dans une variable vip_number
 #Executer le playbook ansible-playbook avec le fichier json en entrée avec tous les json dans le dossier.
 #L'execution de chaque playbook stock le fichier json de variable de la VIP dans la BDD si le playbook s'est bien executé.
 #set -x
@@ -71,10 +70,11 @@ if test -f "$JSONFP"; then
   ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts
     if [ $? -ne 0 ]; then
       echo -e "$KO Le playbook s'est mal terminé pour le fichier Json : $j"
-      echo -e "$KO Sortie du script"
+      #echo -e "$KO Sortie du script"
       #exit 1
     else
       echo -e "$OK La playbook s'est terminé pour le fichier Json : $j"
+      echo "Sauvegarde de $j dans ../SAVEDUCS/$JSONREF/$j"
     fi
   done
 
