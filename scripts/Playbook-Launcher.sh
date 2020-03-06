@@ -83,6 +83,8 @@ else
   echo -e "$KO Le fichier '$JSONFILE' n'existe pas"
 fi
 
+#
+#cat F5_PEPS_REC_OP.json | jq -r '.[] | to_entries[0].value.vsid'
 
-#cat F5_PEPS_REC_OP_V2.json | jq -r '.F5_PEPS_REC_OPR | to_entries[0].value.name'
+#cat F5_PEPS_REC_OP.json | jq -r '.[] | to_entries[0].value '
 
