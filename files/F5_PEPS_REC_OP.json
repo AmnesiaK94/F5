@@ -1,31 +1,34 @@
 {
   "F5_PEPS_REC_OPR": {
     "F5_VIP_PEPS_REC_FRONT": {
-      "ID": "vs-peps-rec-front",
+      "vsid": "peps-rec-front",
+      "dom": "rec.galec.fr",
       "env": "rec",
       "virt_profile": "vip_profile_ssloffload_standard",
       "vsip": "192.168.156.4",
-      "nodes": [
+      "members": [
         "192.168.24.166",
         "192.168.24.167"
       ]
     },
     "F5_VIP_PEPS_REC_BACK": {
-      "ID": "vs-peps-rec-back",
+      "vsid": "peps-rec-back",
       "env": "rec",
-      "virt_profile": "vip_profile_ssloffload_standard",
+      "dom": "rec.galec.fr",
+      "virt_profile": "vip_profile_fullssl_standard",
       "vsip": "192.168.156.5",
-      "nodes": [
+      "members": [
         "192.168.24.168",
         "192.168.24.169"
       ]
     },
     "F5_VIP_PEPS_REC_ADMIN": {
-      "ID": "vs-peps-rec-admin",
+      "vsid": "peps-rec-admin",
       "env": "rec",
-      "virt_profile": "vip_profile_ssloffload_standard",
+      "dom": "rec.galec.fr",
+      "virt_profile": "vip_profile_tcp_80",
       "vsip": "192.168.156.6",
-      "nodes": [
+      "members": [
         "192.168.24.170",
         "192.168.24.171"
       ]

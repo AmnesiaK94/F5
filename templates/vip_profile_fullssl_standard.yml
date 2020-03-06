@@ -11,23 +11,22 @@
 ###################################################################
 
 
+############################################################
+#Variables calculées à partir du fichier input.json fournis#
+############################################################
+
+vsname: "vs_{{vsid}}"
+plname: "p_{{vsid}}"
+client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
+client_ssl_profile: "clientssl_{{vsname}}_{{dom}}"
+
 
 
 vsport: "443"
-pmport: "80"
+pmport: "443"
 monitors : "tcp"
 snat : "Automap"
 all_profiles:
  - '{{client_ssl_profile}}'
  - serverssl
  - tcp
-############################################################
-#Variables calculées à partir du fichier input.json fournis#
-############################################################
-
-fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
-dom:  '{{ vars["env"]+".galec.fr" if env != "prd" else "galec.fr" }}'
-vsname: "vs_{{fqdn}}"
-plname: "p_{{fqdn}}"
-client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
-client_ssl_profile: "clientssl_{{fqdn}}"

@@ -66,12 +66,13 @@ if test -f "$JSONFP"; then
   TMPJSONVIP=$JSONTEMPDIR*
   for j in $TMPJSONVIP
   do
+  echo ""
   echo -e "Launching: ${Y}[ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts${NC}]"
   ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts
     if [ $? -ne 0 ]; then
       echo -e "$KO Le playbook s'est mal terminé pour le fichier Json : $j"
       echo -e "$KO Sortie du script"
-      exit 1
+      #exit 1
     else
       echo -e "$OK La playbook s'est terminé pour le fichier Json : $j"
     fi

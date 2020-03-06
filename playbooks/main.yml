@@ -55,11 +55,11 @@
           plname: '{{plname}}'
           vsname: '{{vsname}}'
           dom: '{{dom}}'
-          fqdn: '{{fqdn}}'
           vsport: '{{vsport}}'
           pmport: '{{pmport}}'
           monitors: '{{monitors}}'
           snat: '{{snat}}'
+          members: '{{members}}'
           
 
 
@@ -135,7 +135,7 @@
         name: "{{ item }}"
         host: "{{ item }}"
         state: "{{ state }}"
-      with_items: "{{ pmhost }}"
+      with_items: "{{ members }}"
       when:
         - state == "present"
 
@@ -147,7 +147,7 @@
         port: "{{ pmport }}"
         pool: "{{ plname }}"
         state: "{{ state }}"
-      with_items: "{{ pmhost }}"
+      with_items: "{{ members }}"
       when: 
         - state == "present"
 

@@ -12,22 +12,26 @@
 
 
 
+
+client_ssl_parent_profile : "clientssl"
+client_ssl_profile: "clientssl"
+
+
+
+############################################################
+#Variables calculées à partir du fichier input.json fournis#
+############################################################
+
+vsname: "vs_{{vsid}}"
+plname: "p_{{vsid}}"
+
+
+
 vsport: "80"
 pmport: "80"
 monitors : "tcp"
 snat : "Automap"
 all_profiles:
  - tcp
-############################################################
-#Variables calculées à partir du fichier input.json fournis#
-############################################################
 
-fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
-dom:  '{{ vars["env"]+".galec.fr" if env != "prd" else "galec.fr" }}'
-vsname: "vs_{{fqdn}}"
-plname: "p_{{fqdn}}"
 
-#Ces variables doivent êtres définies même si non utilisées pour ce profile (pas de SSL)
-
-client_ssl_parent_profile : "clientssl"
-client_ssl_profile: "clientssl"
