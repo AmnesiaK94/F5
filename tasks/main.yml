@@ -1,9 +1,20 @@
 ---
 
-- name: "Yaml VIP file testweb.rec.galec.fr.yml based on VIP_PROFILE_SSLOFFLOAD_REC_STANDARD"
+- name: "Yaml file to create/Modify or delete VIP/POOL on F5"
   hosts: F5
   gather_facts: no
   connection: local
+
+#################################################################################
+#JBO 24/02/2020
+#Ce playbook doit-être lancé en spécifiant un fichier input.json qui comprendra les informations nécessaires :
+#ansible-playbook playbooks/main.yml -e "@./vars/INPUT.json"
+################################################################################
+
+
+
+
+
 #####################
 #       VARS        #
 #####################
@@ -15,28 +26,19 @@
   vars:
     continue_var: OUI
 
-#Var calculated from INPUT.json vars
-    fqdn: '{{ vars["app"]+"."+vars["env"]+".galec.fr" if env != "prd" else vars["app"]+".galec.fr" }}'
-    dom:  '{{ vars["env"]+".galec.fr" if env != "prd" else "galec.fr" }}'
-    vsname: "vs_{{fqdn}}"
-    plname: "p_{{fqdn}}"
-    client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
-    client_ssl_profile: "clientssl_{{fqdn}}"
-
-
-
-#Var calculated frome VIP Profile 
-    vsport: "443"
-    pmport: "80"
-    monitors : "tcp"
-    snat : "Automap"
-    all_profiles:
-     - '{{client_ssl_profile}}'
-     - tcp
 
 #Delete or Create/Modify    
     state: "present"
 
+
+#####################
+#     PRE TASKS     #
+#####################
+
+
+  pre_tasks:
+    - name: include vs profile vars based on input.json
+      include_vars: "../files/{{virt_profile}}.yml"
 
 
 #####################
@@ -53,11 +55,11 @@
           plname: '{{plname}}'
           vsname: '{{vsname}}'
           dom: '{{dom}}'
-          fqdn: '{{fqdn}}'
           vsport: '{{vsport}}'
           pmport: '{{pmport}}'
           monitors: '{{monitors}}'
           snat: '{{snat}}'
+          members: '{{members}}'
           
 
 
@@ -114,6 +116,8 @@
         state: "{{ state }}"
         name: "{{ client_ssl_profile }}"
         parent: "{{ client_ssl_parent_profile }}"
+      when:
+        - client_ssl_profile != "clientssl"
 
     - name: Altering web servers pool {{ plname }} with state {{state}}
       bigip_pool:
@@ -131,7 +135,7 @@
         name: "{{ item }}"
         host: "{{ item }}"
         state: "{{ state }}"
-      with_items: "{{ pmhost }}"
+      with_items: "{{ members }}"
       when:
         - state == "present"
 
@@ -143,7 +147,7 @@
         port: "{{ pmport }}"
         pool: "{{ plname }}"
         state: "{{ state }}"
-      with_items: "{{ pmhost }}"
+      with_items: "{{ members }}"
       when: 
         - state == "present"
 
@@ -157,4 +161,5 @@
         state: "{{ state }}"
       when:
         - state == "present"
+
 

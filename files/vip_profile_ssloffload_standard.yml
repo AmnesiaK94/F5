@@ -1,20 +1,14 @@
 ---
 ###################################################################
 #VS Profile for Standard SSL Offload
-# Port d'écoute: TCP 80
+# Port d'écoute: SSL/443
 # Port loadbalancé sur les serveurs : TCP/80
 # Loadbalancing Method : Round-Robin
-# 
+# Profile SSL basé sur le template profile SSL du nom de domaine
 # Profile TCP
 # SNAT : AutoMAP
 ###################################################################
 
-
-
-
-
-client_ssl_parent_profile : "clientssl"
-client_ssl_profile: "clientssl"
 
 
 
@@ -24,14 +18,17 @@ client_ssl_profile: "clientssl"
 
 vsname: "vs_{{vsid}}"
 plname: "p_{{vsid}}"
+client_ssl_parent_profile : "clientssl_wildcard.{{dom}}-template"
+client_ssl_profile: "clientssl_{{vsname}}_{{dom}}"
 
 
 
-vsport: "80"
+vsport: "443"
 pmport: "80"
 monitors : "tcp"
 snat : "Automap"
 all_profiles:
+ - '{{client_ssl_profile}}'
  - tcp
 
 

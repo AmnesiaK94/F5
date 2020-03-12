@@ -1,12 +1,9 @@
 #!/bin/bash
+# JBN 11/03/2020
 #Verification que le fichier .json existe et que celui-ci à la bonne syntaxe
 #Découpe le fichier en x.json dans une repertoire temporaire 
-#Recuperation des clé "NAME" de chaque fichier json et verifier si le fichier json de la VIP existe.
-#Si le nom existe déja ne rien faire
-#Si le nom d'existe pas ne rien faire 
-#Si le nom existe mais que la clé n'est pas existance dans la demande, copier le fichier json manquant et insérer le state absent.
 #Executer le playbook ansible-playbook avec le fichier json en entrée avec tous les json dans le dossier.
-#L'execution de chaque playbook stock le fichier json de variable de la VIP dans la BDD si le playbook s'est bien executé.
+
 #set -x
 
 RED='\033[0;31m'
@@ -23,6 +20,9 @@ JSONPATH=../files/
 JSONFILE=$JSONREF.json
 JSONFP=$JSONPATH$JSONFILE
 JSONTEMPDIR=../files/$JSONREF-TEMP-JSON/
+PB=../tasks/main.yml
+INV=../hosts
+
 
 
 
@@ -40,9 +40,10 @@ if test -f "$JSONFP"; then
   echo ""
   echo "Le fichier '$JSONFILE' existe"
   echo ""
-  cat $JSONFP | jq '.'> /dev/null
+  cat $JSONFP | jq '.'
   if [ $? -ne 0 ]; then
     echo -e "$KO Erreur de syntaxe dans le fichier json"
+    exit 1
   else
     echo -e "$OK La syntaxe du fichier Json est correct"
   fi
@@ -57,34 +58,37 @@ if test -f "$JSONFP"; then
   echo ""
   ls  $JSONTEMPDIR | grep json
   echo ""
-  echo -e "Liste des Noms technique de VIP qui vont être créees:"
+  echo -e "Liste des Noms technique de VIP qui vont être crées:"
   echo ""
-  cat $JSONFP | jq -r '.[] | .[].ID '
+  cat $JSONFP | jq -r '.[] | .[].vsid'
   echo ""
   
   TMPJSONVIP=$JSONTEMPDIR*
   for j in $TMPJSONVIP
   do
+  Virtual_name=`cat $j | jq -r '.vsid'`
   echo ""
-  echo -e "Launching: ${Y}[ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts${NC}]"
-  ansible-playbook ../playbooks/main.yml -e "@$j" -i ../inventory/hosts
+  echo ""
+  echo -e "${Y}##################################################################################################################################################${NC}"
+  echo -e "${Y}Ajustement pour la VIP : vs_$Virtual_name${NC}"
+  echo -e "${Y}Launching: [ ansible-playbook $PB -e "@$j" -i $INV}]${NC}"
+  echo -e "${Y}##################################################################################################################################################${NC}"
+  ansible-playbook $PB -e "@$j" -i $INV
     if [ $? -ne 0 ]; then
       echo -e "$KO Le playbook s'est mal terminé pour le fichier Json : $j"
-      #echo -e "$KO Sortie du script"
-      #exit 1
+      echo -e "$KO Sortie du script"
+      exit 1
     else
-      echo -e "$OK La playbook s'est terminé pour le fichier Json : $j"
-      echo "Sauvegarde de $j dans ../SAVEDUCS/$JSONREF/$j"
+      echo -e "$OK La playbook s'est terminé avec succès pour le fichier Json : $j"
     fi
-  done
-
+   done
  
 else
   echo -e "$KO Le fichier '$JSONFILE' n'existe pas"
 fi
 
-#
-#cat F5_PEPS_REC_OP.json | jq -r '.[] | to_entries[0].value.vsid'
 
-#cat F5_PEPS_REC_OP.json | jq -r '.[] | to_entries[0].value '
+
+
+#cat F5_PEPS_REC_OP_V2.json | jq -r '.F5_PEPS_REC_OPR | to_entries[0].value.name'
 
